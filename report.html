@@ -258,13 +258,12 @@
 
         @media print {
             .button-group {
-                display: none;
+                display: none !important;
             }
             .report-container {
-                margin: 0;
-                padding: 2rem;
-                box-shadow: none;
-                background: white;
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 20px !important;
             }
             .report-header::after {
                 display: none;
@@ -652,18 +651,21 @@
             });
         }
 
-        // 下载PDF功能
+        // 添加下载PDF功能
         async function downloadPDF() {
             try {
-                // 等待 Mermaid 图表渲染完成
-                await waitForMermaidRender();
-                
-                const container = document.getElementById('reportContainer');
-                
+                // 获取报告容器
+                const container = document.querySelector('.report-container');
+                if (!container) {
+                    throw new Error('找不到报告内容');
+                }
+
                 // 临时隐藏按钮组
-                const buttonGroup = container.querySelector('.button-group');
-                buttonGroup.style.display = 'none';
-                
+                const buttonGroup = document.querySelector('.button-group');
+                if (buttonGroup) {
+                    buttonGroup.style.display = 'none';
+                }
+
                 // 使用html2canvas将内容转换为图片
                 const canvas = await html2canvas(container, {
                     scale: 2,
@@ -671,13 +673,14 @@
                     logging: false,
                     backgroundColor: '#ffffff'
                 });
-                
-                // 恢复按钮组显示
-                buttonGroup.style.display = 'flex';
 
+                // 恢复按钮组显示
+                if (buttonGroup) {
+                    buttonGroup.style.display = 'flex';
+                }
+
+                // 创建PDF
                 const { jsPDF } = window.jspdf;
-                
-                // 创建PDF文档
                 const pdf = new jsPDF({
                     orientation: 'p',
                     unit: 'px',
@@ -685,18 +688,18 @@
                     hotfixes: ['px_scaling']
                 });
 
-                // 获取PDF页面尺寸
+                // 获取页面尺寸
                 const pageWidth = pdf.internal.pageSize.getWidth();
                 const pageHeight = pdf.internal.pageSize.getHeight();
 
-                // 计算图片缩放比例
+                // 计算缩放比例
                 const imgWidth = canvas.width;
                 const imgHeight = canvas.height;
                 const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
-                
+
                 // 计算居中位置
                 const x = (pageWidth - imgWidth * ratio) / 2;
-                const y = 20; // 顶部留出一些空间
+                const y = 20;
 
                 // 将canvas图片添加到PDF
                 pdf.addImage(
@@ -714,12 +717,12 @@
                 if (imgHeight * ratio > pageHeight) {
                     let remainingHeight = imgHeight * ratio;
                     let currentPage = 1;
-                    
+
                     while (remainingHeight > pageHeight) {
                         pdf.addPage();
                         currentPage++;
                         remainingHeight -= pageHeight;
-                        
+
                         pdf.addImage(
                             canvas.toDataURL('image/jpeg', 1.0),
                             'JPEG',
@@ -733,13 +736,18 @@
                     }
                 }
 
-                // 生成并下载PDF
+                // 保存PDF
                 pdf.save('家庭沟通调解报告.pdf');
 
             } catch (error) {
                 console.error('生成PDF错误:', error);
-                alert('生成PDF失败，请尝试使用打印功能将页面另存为PDF文件。\n错误信息：' + error.message);
+                alert('生成PDF失败: ' + error.message);
             }
+        }
+
+        // 添加打印功能
+        function printReport() {
+            window.print();
         }
     </script>
 </body>
