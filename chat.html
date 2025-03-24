@@ -29,6 +29,102 @@
         </div>
     </div>
 
+    <!-- 添加版本选择弹窗 -->
+    <div class="modal-overlay" id="versionModal" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;">
+        <div class="modal-container" style="
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="text-align: center; margin-bottom: 2rem;">
+                <h2 style="font-family: SimSun, '宋体', serif; font-size: 18pt; color: #1d1d1f; margin-bottom: 1rem;">选择报告版本</h2>
+            </div>
+            <div class="modal-options" style="
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.5rem;
+                margin-bottom: 2rem;">
+                <div class="option-card" onclick="selectVersion('brief')" style="
+                    background: #f5f5f7;
+                    padding: 1.5rem;
+                    border-radius: 15px;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    border: 2px solid transparent;">
+                    <div class="option-title" style="
+                        font-family: SimSun, '宋体', serif;
+                        font-size: 14pt;
+                        font-weight: bold;
+                        margin-bottom: 1rem;
+                        color: #1d1d1f;">简略版</div>
+                    <div class="option-price" style="
+                        font-family: SimSun, '宋体', serif;
+                        font-size: 12pt;
+                        color: #86868b;
+                        margin-bottom: 0.5rem;">免费</div>
+                    <div class="option-description" style="
+                        font-family: SimSun, '宋体', serif;
+                        font-size: 11pt;
+                        color: #86868b;
+                        line-height: 1.4;">包含基本的沟通分析和建议</div>
+                </div>
+                <div class="option-card" onclick="selectVersion('detailed')" style="
+                    background: #f5f5f7;
+                    padding: 1.5rem;
+                    border-radius: 15px;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    border: 2px solid transparent;">
+                    <div class="option-title" style="
+                        font-family: SimSun, '宋体', serif;
+                        font-size: 14pt;
+                        font-weight: bold;
+                        margin-bottom: 1rem;
+                        color: #1d1d1f;">详细版</div>
+                    <div class="option-price" style="
+                        font-family: SimSun, '宋体', serif;
+                        font-size: 12pt;
+                        color: #86868b;
+                        margin-bottom: 0.5rem;">￥29.9</div>
+                    <div class="option-description" style="
+                        font-family: SimSun, '宋体', serif;
+                        font-size: 11pt;
+                        color: #86868b;
+                        line-height: 1.4;">包含深度分析和专业建议</div>
+                </div>
+            </div>
+            <div class="modal-footer" style="text-align: center;">
+                <button class="modal-btn" id="confirmBtn" disabled onclick="confirmVersion()" style="
+                    padding: 0.8rem 2.5rem;
+                    border-radius: 25px;
+                    font-size: 1rem;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    border: none;
+                    outline: none;
+                    background: #0066cc;
+                    color: white;">确认选择</button>
+            </div>
+        </div>
+    </div>
+
     <style>
         .chat-header {
             position: fixed;
@@ -165,6 +261,8 @@
                 parent: []
             }
         };
+
+        let selectedVersion = null;
 
         async function sendMessage() {
             const input = document.getElementById('messageInput');
@@ -359,33 +457,119 @@
             }
         }
 
-        // 生成总结报告
-        async function generateReport() {
-            try {
-                // 检查是否有对话内容
-                if (messages.length <= 1) {
-                    alert('请先进行一些对话，然后再生成报告。');
-                    return;
-                }
+        // 修改生成报告按钮的点击事件
+        document.querySelector('.generate-report-button').onclick = function() {
+            // 检查是否有对话内容
+            if (messages.length <= 1) {
+                alert('请先进行一些对话，然后再生成报告。');
+                return;
+            }
+            
+            // 显示弹窗
+            showVersionModal();
+            
+            // 禁用生成报告按钮，防止重复点击
+            this.disabled = true;
+            this.style.opacity = '0.5';
+            this.style.cursor = 'not-allowed';
+        };
 
+        // 显示版本选择弹窗
+        function showVersionModal() {
+            const modal = document.getElementById('versionModal');
+            if (modal) {
+                modal.style.display = 'flex';
+            } else {
+                console.error('找不到版本选择弹窗元素');
+            }
+        }
+
+        // 选择版本
+        function selectVersion(version) {
+            selectedVersion = version;
+            
+            // 更新选中状态
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.style.borderColor = 'transparent';
+                card.style.background = '#f5f5f7';
+            });
+            
+            const selectedCard = event.currentTarget;
+            selectedCard.style.borderColor = '#0066cc';
+            selectedCard.style.background = 'rgba(0, 102, 204, 0.05)';
+            
+            // 启用确认按钮
+            const confirmBtn = document.getElementById('confirmBtn');
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.style.opacity = '1';
+            }
+        }
+
+        // 修改确认版本选择函数
+        async function confirmVersion() {
+            if (!selectedVersion) return;
+
+            const modal = document.getElementById('versionModal');
+            
+            if (selectedVersion === 'detailed') {
+                // 处理支付逻辑
+                const confirmed = await handlePayment();
+                if (!confirmed) return;
+            }
+
+            // 隐藏弹窗
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            
+            // 生成报告
+            generateReport(selectedVersion);
+            
+            // 移除弹窗
+            modal.remove();
+        }
+
+        // 处理支付
+        async function handlePayment() {
+            return confirm('确认支付 ¥29.9 购买详细版报告？');
+        }
+
+        // 修改生成报告函数
+        async function generateReport(version) {
+            try {
                 // 显示加载状态
                 const loadingDiv = document.createElement('div');
                 loadingDiv.className = 'message bot-message loading';
-                loadingDiv.textContent = '正在生成总结报告...';
+                loadingDiv.textContent = '正在生成报告...';
                 document.getElementById('chatMessages').appendChild(loadingDiv);
 
                 // 准备提示词
-                const reportPrompt = `请根据以下对话内容，生成一份家庭沟通调解报告。
+                let prompt;
+                if (version === 'brief') {
+                    prompt = `请根据以下对话内容，生成一份简略的家庭沟通调解报告。
 角色：${role === 'child' ? '孩子' : '父母'}
 
 请包含以下内容：
-1. 沟通问题分析
-2. 情感需求分析
-3. 建议方案
-4. 关键发现
+1. 核心问题概述
+2. 基本建议
 
 对话记录：
 ${JSON.stringify(messages.filter(msg => msg.role !== 'system'), null, 2)}`;
+                } else {
+                    prompt = `请根据以下对话内容，生成一份详细的家庭沟通调解报告。
+角色：${role === 'child' ? '孩子' : '父母'}
+
+请包含以下内容：
+1. 沟通问题深度分析
+2. 情感需求分析
+3. 具体建议方案
+4. 执行计划
+5. 关键发现
+
+对话记录：
+${JSON.stringify(messages.filter(msg => msg.role !== 'system'), null, 2)}`;
+                }
 
                 // 调用API生成报告
                 const response = await fetch(API_URL, {
@@ -399,20 +583,24 @@ ${JSON.stringify(messages.filter(msg => msg.role !== 'system'), null, 2)}`;
                         messages: [
                             {
                                 role: "system",
-                                content: "你是一位专业的家庭沟通调解专家。请用清晰的结构和专业的视角分析对话内容，生成一份详细的调解报告。"
+                                content: "你是一位专业的家庭沟通调解专家。请用清晰的结构和专业的视角分析对话内容，生成一份调解报告。"
                             },
                             {
                                 role: "user",
-                                content: reportPrompt
+                                content: prompt
                             }
                         ]
                     })
                 });
 
+                if (!response.ok) {
+                    throw new Error('API请求失败');
+                }
+
                 const data = await response.json();
                 
-                if (!response.ok || !data.choices || !data.choices[0] || !data.choices[0].message) {
-                    throw new Error('API响应异常');
+                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                    throw new Error('API响应格式错误');
                 }
 
                 // 获取报告内容
@@ -420,29 +608,36 @@ ${JSON.stringify(messages.filter(msg => msg.role !== 'system'), null, 2)}`;
 
                 // 准备报告数据
                 const reportData = {
+                    content: reportContent,
                     timestamp: new Date().toLocaleString(),
                     role: role || 'unknown',
-                    content: reportContent
+                    version: version
                 };
 
                 // 移除加载状态
                 loadingDiv.remove();
 
-                // 使用 localStorage 存储报告数据
+                // 存储报告数据
                 localStorage.setItem('reportData', JSON.stringify(reportData));
-                
-                // 直接跳转到报告页面
-                window.location.href = 'report.html';
+
+                // 显示成功消息并跳转
+                const successDiv = document.createElement('div');
+                successDiv.className = 'message bot-message';
+                successDiv.textContent = '报告生成成功！即将跳转到报告页面...';
+                document.getElementById('chatMessages').appendChild(successDiv);
+
+                // 延迟跳转
+                setTimeout(() => {
+                    window.location.href = 'report.html';
+                }, 1500);
 
             } catch (error) {
-                console.error('生成报告时发生错误:', error);
-                // 在界面上显示错误信息
-                addMessage(`生成报告失败：${error.message}`, 'bot');
-                // 移除加载状态
+                console.error('生成报告错误:', error);
                 const loadingDiv = document.querySelector('.loading');
                 if (loadingDiv) {
                     loadingDiv.remove();
                 }
+                addMessage(`生成报告失败：${error.message}`, 'bot');
             }
         }
 

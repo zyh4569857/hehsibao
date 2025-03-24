@@ -8,109 +8,436 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- 添加jsPDF库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- 添加中文字体支持 -->
+    <!-- 添加字体支持 -->
     <script src="https://unpkg.com/downloadjs@1.4.7/download.min.js"></script>
-    <!-- 添加思源黑体支持 -->
-    <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css"></script>
-    <script src="https://cdn.jsdelivr.net/gh/sphilee/jsPDF-CustomFonts-support/dist/jspdf.customfonts.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/sphilee/jsPDF-CustomFonts-support/dist/default_vfs.js"></script>
+    <!-- 添加 Mermaid 支持 -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <style>
-        body {
-            font-family: "Microsoft YaHei", "SimSun", sans-serif;
-            line-height: 1.6;
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+        
+        :root {
+            --primary-color: #1d1d1f;
+            --secondary-color: #86868b;
+            --accent-color: #0066cc;
+            --background-color: #f5f5f7;
+            --card-background: rgba(255, 255, 255, 0.85);
+            --title-color: #000000;
+        }
+
+        * {
             margin: 0;
             padding: 0;
-            background: #f5f6fa;
+            box-sizing: border-box;
         }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--primary-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(135deg, 
+                #fbfbfd 0%,
+                #f5f5f7 20%,
+                #ebebeb 40%,
+                #f1f1f3 60%,
+                #fbfbfd 80%
+            );
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 添加动态渐变背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center,
+                rgba(146, 168, 209, 0.08) 0%,
+                rgba(207, 220, 243, 0.08) 30%,
+                rgba(176, 188, 209, 0.08) 60%
+            );
+            animation: rotate 60s linear infinite;
+            z-index: -1;
+        }
+
+        /* 添加装饰性渐变球 */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 10%;
+            right: -15%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle at 30% 30%,
+                rgba(88, 156, 255, 0.08) 0%,
+                rgba(114, 168, 243, 0.08) 45%,
+                rgba(139, 178, 235, 0.05) 100%
+            );
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         .report-container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 900px;
+            margin: 3rem auto;
+            padding: 3rem;
+            background: var(--card-background);
+            border-radius: 30px;
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.05),
+                0 0 0 1px rgba(255,255,255,0.5) inset;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
+
+        /* 添加容器装饰效果 */
+        .report-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                rgba(255,255,255,0) 0%,
+                rgba(255,255,255,0.5) 50%,
+                rgba(255,255,255,0) 100%
+            );
+        }
+
         .report-header {
             text-align: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #eee;
+            margin-bottom: 3rem;
+            position: relative;
         }
+
+        .report-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                rgba(0,102,204,0.2),
+                rgba(0,102,204,0.8) 50%,
+                rgba(0,102,204,0.2)
+            );
+            border-radius: 3px;
+        }
+
         .report-header h1 {
-            color: #2c3e50;
-            margin-bottom: 1rem;
+            font-family: SimSun, "宋体", serif;
+            font-size: 14pt; /* 四号字体大约是14pt */
+            font-weight: 700;
+            color: var(--title-color);
+            margin-bottom: 1.5rem;
+            letter-spacing: 1px;
         }
+
+        .meta-info {
+            font-family: SimSun, "宋体", serif;
+            color: var(--secondary-color);
+            font-size: 12pt;
+            margin: 0.7rem 0;
+            font-weight: normal;
+            letter-spacing: 0.3px;
+        }
+
         .report-content {
+            font-family: SimSun, "宋体", serif;
             white-space: pre-wrap;
             line-height: 1.8;
-            color: #2c3e50;
-            padding: 0 1rem;
+            color: var(--primary-color);
+            padding: 2rem 0;
+            font-size: 12pt;
+            font-weight: normal;
         }
-        .error-message {
-            color: #e74c3c;
-            text-align: center;
-            padding: 2rem;
-            background: #fff3f3;
-            border-radius: 10px;
-            margin: 2rem 0;
+
+        .report-content h2, .report-content h3 {
+            font-family: SimSun, "宋体", serif;
+            font-weight: bold;
+            margin: 2rem 0 1rem 0;
+            color: var(--primary-color);
+            font-size: 13pt;
         }
+
         .button-group {
-            text-align: center;
-            margin-top: 2rem;
-            padding-top: 1rem;
-            border-top: 2px solid #eee;
             display: flex;
             justify-content: center;
-            gap: 1rem;
+            gap: 1.5rem;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(0,0,0,0.1);
         }
+
+        .btn {
+            padding: 0.8rem 2.5rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            outline: none;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0));
+            transform: translateY(-100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover::before {
+            transform: translateY(0);
+        }
+
         .back-button {
-            padding: 0.8rem 2rem;
-            background: #34495e;
+            background: linear-gradient(135deg, #1d1d1f 0%, #2d2d2f 100%);
             color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s ease;
         }
+
         .download-button {
-            padding: 0.8rem 2rem;
-            background: #27ae60;
+            background: linear-gradient(135deg, #0066cc 0%, #0077ed 100%);
             color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s ease;
         }
+
         .print-button {
-            padding: 0.8rem 2rem;
-            background: #2980b9;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.9);
+            color: var(--primary-color);
+            border: 1px solid rgba(0,0,0,0.1);
         }
-        .back-button:hover, .download-button:hover, .print-button:hover {
+
+        .btn:hover {
             transform: translateY(-2px);
-            opacity: 0.9;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
+
+        .error-message {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 20px;
+            margin: 2rem 0;
+        }
+
+        .error-message h2 {
+            color: #e74c3c;
+            margin-bottom: 1rem;
+        }
+
         @media print {
             .button-group {
                 display: none;
             }
             .report-container {
                 margin: 0;
-                padding: 1rem;
+                padding: 2rem;
                 box-shadow: none;
+                background: white;
+            }
+            .report-header::after {
+                display: none;
             }
         }
-        .meta-info {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-            margin: 0.5rem 0;
+
+        @media (max-width: 768px) {
+            .report-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            .button-group {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* 添加 Mermaid 图表样式 */
+        .mermaid {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 调整图表中的文字样式 */
+        .mermaid text {
+            font-family: SimSun, "宋体", serif !important;
+            font-size: 12pt !important;
+        }
+
+        .mermaid .taskText {
+            font-family: SimSun, "宋体", serif !important;
+            font-size: 11pt !important;
+        }
+
+        .mermaid .sectionTitle {
+            font-family: SimSun, "宋体", serif !important;
+            font-size: 13pt !important;
+            font-weight: bold !important;
+        }
+
+        /* 添加弹窗样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-header h2 {
+            font-family: SimSun, "宋体", serif;
+            font-size: 18pt;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .modal-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .option-card {
+            background: var(--background-color);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .option-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .option-card.selected {
+            border-color: var(--accent-color);
+            background: rgba(0, 102, 204, 0.05);
+        }
+
+        .option-title {
+            font-family: SimSun, "宋体", serif;
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .option-price {
+            font-family: SimSun, "宋体", serif;
+            font-size: 12pt;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .option-description {
+            font-family: SimSun, "宋体", serif;
+            font-size: 11pt;
+            color: var(--secondary-color);
+            line-height: 1.4;
+        }
+
+        .modal-footer {
+            text-align: center;
+        }
+
+        .modal-btn {
+            padding: 0.8rem 2.5rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            outline: none;
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .modal-btn:disabled {
+            background: var(--secondary-color);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
     </style>
 </head>
@@ -125,55 +452,212 @@
             <!-- 报告内容将在这里显示 -->
         </div>
         <div class="button-group">
-            <button onclick="window.location.href='chat.html'" class="back-button">返回对话</button>
-            <button onclick="downloadPDF()" class="download-button">下载报告</button>
-            <button onclick="window.print()" class="print-button">打印报告</button>
+            <button onclick="window.location.href='chat.html'" class="btn back-button">返回对话</button>
+            <button onclick="downloadPDF()" class="btn download-button">下载报告</button>
+            <button onclick="window.print()" class="btn print-button">打印报告</button>
+        </div>
+    </div>
+
+    <!-- 添加弹窗HTML -->
+    <div class="modal-overlay" id="versionModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>选择报告版本</h2>
+            </div>
+            <div class="modal-options">
+                <div class="option-card" onclick="selectVersion('brief')">
+                    <div class="option-title">简略版</div>
+                    <div class="option-price">免费</div>
+                    <div class="option-description">包含基本的沟通分析和建议</div>
+                </div>
+                <div class="option-card" onclick="selectVersion('detailed')">
+                    <div class="option-title">详细版</div>
+                    <div class="option-price">￥29.9</div>
+                    <div class="option-description">包含深度分析和专业建议</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" id="confirmBtn" disabled onclick="confirmVersion()">确认选择</button>
+            </div>
         </div>
     </div>
 
     <script>
+        // 配置 Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            gantt: {
+                titleTopMargin: 25,
+                barHeight: 20,
+                barGap: 4,
+                topPadding: 50,
+                sidePadding: 50,
+                fontSize: 12,
+                numberSectionStyles: 3,
+                axisFormat: '%Y-%m-%d'
+            }
+        });
+
         let reportData = null;
+        let selectedVersion = null;
+        let originalContent = null;  // 用于存储原始报告内容
 
-        // 获取并显示报告数据
-        try {
-            // 从 localStorage 获取数据
-            const reportDataStr = localStorage.getItem('reportData');
+        // 初始化报告数据
+        function initReportData() {
+            try {
+                // 从 localStorage 获取数据
+                const reportDataStr = localStorage.getItem('reportData');
+                
+                if (!reportDataStr) {
+                    throw new Error('未找到报告数据');
+                }
+
+                // 解析数据
+                reportData = JSON.parse(reportDataStr);
+                
+                if (!reportData || !reportData.content) {
+                    throw new Error('报告数据无效');
+                }
+
+                // 保存原始内容
+                originalContent = reportData.content;
+
+                // 显示版本选择弹窗
+                showVersionModal();
+
+            } catch (error) {
+                // 显示错误信息
+                document.getElementById('reportContent').innerHTML = `
+                    <div class="error-message">
+                        <h2>生成报告失败</h2>
+                        <p>${error.message}</p>
+                        <p>请返回对话页面重新生成报告。</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 选择版本
+        function selectVersion(version) {
+            selectedVersion = version;
             
-            if (!reportDataStr) {
-                throw new Error('未找到报告数据');
+            // 更新选中状态
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            const selectedCard = event.currentTarget;
+            selectedCard.classList.add('selected');
+            
+            // 启用确认按钮
+            document.getElementById('confirmBtn').disabled = false;
+        }
+
+        // 确认版本选择
+        async function confirmVersion() {
+            if (!selectedVersion) return;
+
+            const modal = document.getElementById('versionModal');
+            
+            if (selectedVersion === 'detailed') {
+                // 处理支付逻辑
+                const confirmed = await handlePayment();
+                if (!confirmed) return;
             }
 
-            // 解析数据
-            reportData = JSON.parse(reportDataStr);
+            // 隐藏弹窗
+            modal.classList.remove('active');
             
-            if (!reportData || !reportData.content) {
-                throw new Error('报告数据无效');
+            // 生成报告
+            generateReport(selectedVersion);
+        }
+
+        // 处理支付
+        async function handlePayment() {
+            // TODO: 实现支付逻辑
+            return confirm('确认支付 ¥29.9 购买详细版报告？');
+        }
+
+        // 显示版本选择弹窗
+        function showVersionModal() {
+            const modal = document.getElementById('versionModal');
+            modal.classList.add('active');
+        }
+
+        // 生成报告
+        async function generateReport(version) {
+            try {
+                // 显示时间戳和角色
+                document.getElementById('reportTimestamp').textContent = `生成时间：${reportData.timestamp}`;
+                document.getElementById('reportRole').textContent = `角色：${reportData.role === 'child' ? '孩子' : '父母'}`;
+                
+                // 根据版本处理内容
+                let content;
+                if (version === 'brief') {
+                    // 简略版内容处理
+                    const contentParts = originalContent.split('\n\n');
+                    content = contentParts[0] + '\n\n' + '简要建议：\n' + contentParts[1];
+                } else {
+                    // 详细版使用完整内容
+                    content = originalContent;
+                }
+                
+                const contentDiv = document.getElementById('reportContent');
+                
+                // 将内容按 Mermaid 代码块分割
+                const parts = content.split('```mermaid');
+                let processedContent = parts[0];
+                
+                for (let i = 1; i < parts.length; i++) {
+                    const [mermaidCode, ...rest] = parts[i].split('```');
+                    const mermaidDiv = document.createElement('div');
+                    mermaidDiv.className = 'mermaid';
+                    mermaidDiv.textContent = mermaidCode.trim();
+                    
+                    processedContent += mermaidDiv.outerHTML;
+                    processedContent += rest.join('```');
+                }
+                
+                contentDiv.innerHTML = processedContent;
+
+                // 重新渲染 Mermaid 图表
+                mermaid.init(undefined, '.mermaid');
+
+            } catch (error) {
+                console.error('生成报告错误:', error);
+                document.getElementById('reportContent').innerHTML = `
+                    <div class="error-message">
+                        <h2>生成报告失败</h2>
+                        <p>${error.message}</p>
+                        <p>请返回对话页面重新生成报告。</p>
+                    </div>
+                `;
             }
+        }
 
-            // 显示时间戳和角色
-            document.getElementById('reportTimestamp').textContent = `生成时间：${reportData.timestamp}`;
-            document.getElementById('reportRole').textContent = `角色：${reportData.role === 'child' ? '孩子' : '父母'}`;
-            
-            // 显示报告内容
-            document.getElementById('reportContent').textContent = reportData.content;
+        // 页面加载时初始化报告数据
+        window.onload = initReportData;
 
-            // 清除 localStorage 中的报告数据
-            localStorage.removeItem('reportData');
-
-        } catch (error) {
-            // 显示错误信息
-            document.getElementById('reportContent').innerHTML = `
-                <div class="error-message">
-                    <h2>生成报告失败</h2>
-                    <p>${error.message}</p>
-                    <p>请返回对话页面重新生成报告。</p>
-                </div>
-            `;
+        // 等待图表渲染完成后再允许下载PDF
+        async function waitForMermaidRender() {
+            return new Promise(resolve => {
+                const checkMermaid = setInterval(() => {
+                    const mermaidSvgs = document.querySelectorAll('.mermaid svg');
+                    if (mermaidSvgs.length > 0) {
+                        clearInterval(checkMermaid);
+                        resolve();
+                    }
+                }, 100);
+            });
         }
 
         // 下载PDF功能
         async function downloadPDF() {
             try {
+                // 等待 Mermaid 图表渲染完成
+                await waitForMermaidRender();
+                
                 const container = document.getElementById('reportContainer');
                 
                 // 临时隐藏按钮组
@@ -182,7 +666,7 @@
                 
                 // 使用html2canvas将内容转换为图片
                 const canvas = await html2canvas(container, {
-                    scale: 2, // 提高清晰度
+                    scale: 2,
                     useCORS: true,
                     logging: false,
                     backgroundColor: '#ffffff'
