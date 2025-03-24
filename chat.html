@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>对话 - 和事宝</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- 添加 jsPDF 库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <button onclick="window.location.href='index.html'" class="back-home-button">
+                <span class="back-icon">←</span>
+                返回首页
+            </button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- 消息将在这里动态添加 -->
+        </div>
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="请输入您的消息...">
+            <button onclick="sendMessage()">发送</button>
+        </div>
+        <div class="summary-section">
+            <button onclick="generateReport()" class="generate-report-button">生成总结报告</button>
+        </div>
+    </div>
+
+    <style>
+        .chat-header {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            animation: slideIn 0.8s ease-out;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .back-home-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-home-button:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .back-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .back-home-button:hover .back-icon {
+            transform: translateX(-3px);
+        }
+
+        /* 调整聊天容器的上边距，为返回按钮留出空间 */
+        .chat-container {
+            padding-top: 60px;
+        }
+
+        /* 确保消息区域不会被返回按钮遮挡 */
+        .chat-messages {
+            margin-top: 20px;
+        }
+
+        .generate-report-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+        }
+
+        .generate-report-button:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+
+    <script>
+        // API配置
+        const API_KEY = '4b3ed3f4-a392-4e7f-922a-42dbaf6d8e64';
+        const API_URL = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
+        
+        // 获取URL参数中的角色
+        const urlParams = new URLSearchParams(window.location.search);
+        const role = urlParams.get('role');
+        
+        // 根据角色设置系统提示词
+        const systemPrompt = role === 'child' ? 
+            '你是一位专业的家庭沟通调解专家，专注于帮助孩子表达自己的感受和需求。你需要通过对话引导孩子认识自己的情感需求，培养自我表达能力。请用温暖、理解和支持的语气与孩子交流。在对话中，请特别关注孩子的真实感受、内心诉求和成长需求。' :
+            '你是一位专业的家庭沟通调解专家，专注于帮助父母理解孩子的成长需求和情感世界。你需要通过对话帮助父母发现自己的教育盲点和沟通障碍，并提供建设性的建议。请用专业、耐心和同理心的语气与父母交流。在对话中，请特别关注父母的教育理念、情感需求和沟通方式。';
+        
+        // 添加欢迎消息
+        const welcomeMessage = role === 'child' ? 
+            '你好！我是专业的家庭沟通调解专家。我理解在成长过程中，你可能会遇到一些与父母沟通的困扰。让我们一起来探索如何更好地表达自己，建立更和谐的亲子关系。请告诉我你最近在与父母沟通时遇到的最大困扰是什么？' :
+            '您好！我是专业的家庭沟通调解专家。我理解在教育孩子的过程中，您可能会遇到一些沟通上的挑战。让我们一起来探讨如何更好地理解和支持孩子，建立更和谐的亲子关系。请告诉我您在与孩子沟通时遇到的最大挑战是什么？';
+        
+        addMessage(welcomeMessage, 'bot');
+
+        // 存储对话历史
+        let messages = [
+            { role: "system", content: systemPrompt }
+        ];
+
+        // 存储对话总结
+        let conversationSummary = {
+            timestamp: '',
+            communicationIssues: {
+                child: [],
+                parent: [],
+                mutual: []
+            },
+            emotionalNeeds: {
+                child: [],
+                parent: []
+            },
+            communicationPatterns: {
+                child: [],
+                parent: []
+            },
+            suggestedSolutions: {
+                immediate: [],
+                longTerm: []
+            },
+            keyInsights: {
+                child: [],
+                parent: [],
+                relationship: []
+            },
+            strengths: {
+                child: [],
+                parent: []
+            },
+            expectations: {
+                child: [],
+                parent: []
+            }
+        };
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                // 添加用户消息到界面
+                addMessage(message, 'user');
+                input.value = '';
+                
+                // 添加用户消息到对话历史
+                messages.push({ role: "user", content: message });
+                
+                try {
+                    // 显示加载状态
+                    const loadingDiv = document.createElement('div');
+                    loadingDiv.className = 'message bot-message loading';
+                    loadingDiv.textContent = '正在思考...';
+                    document.getElementById('chatMessages').appendChild(loadingDiv);
+                    
+                    // 调用API
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            model: "deepseek-r1-250120",
+                            messages: messages,
+                            timeout: 60
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('API请求失败');
+                    }
+
+                    const data = await response.json();
+                    const botResponse = data.choices[0].message.content;
+                    
+                    // 移除加载状态
+                    loadingDiv.remove();
+                    
+                    // 添加机器人回复到界面
+                    addMessage(botResponse, 'bot');
+                    
+                    // 添加机器人回复到对话历史
+                    messages.push({ role: "assistant", content: botResponse });
+
+                    // 更新对话总结
+                    updateSummary(message, botResponse);
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    loadingDiv.remove();
+                    addMessage('抱歉，我现在遇到了一些问题。请稍后再试。', 'bot');
+                }
+            }
+        }
+
+        function addMessage(text, sender) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.textContent = text;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // 更新对话总结
+        function updateSummary(userMessage, botResponse) {
+            // 分析用户消息
+            if (role === 'child') {
+                // 分析孩子的沟通问题
+                if (userMessage.includes('不理解') || userMessage.includes('生气') || 
+                    userMessage.includes('难过') || userMessage.includes('烦恼')) {
+                    conversationSummary.communicationIssues.child.push({
+                        content: userMessage,
+                        context: botResponse,
+                        type: 'emotional'
+                    });
+                }
+                // 分析孩子的情感需求
+                if (userMessage.includes('想要') || userMessage.includes('需要') || 
+                    userMessage.includes('希望') || userMessage.includes('期待')) {
+                    conversationSummary.emotionalNeeds.child.push({
+                        content: userMessage,
+                        context: botResponse
+                    });
+                }
+                // 分析孩子的优势
+                if (userMessage.includes('喜欢') || userMessage.includes('擅长') || 
+                    userMessage.includes('兴趣') || userMessage.includes('爱好')) {
+                    conversationSummary.strengths.child.push({
+                        content: userMessage,
+                        context: botResponse
+                    });
+                }
+                // 分析孩子的期待
+                if (userMessage.includes('想') || userMessage.includes('希望') || 
+                    userMessage.includes('梦想') || userMessage.includes('职业')) {
+                    conversationSummary.expectations.child.push({
+                        content: userMessage,
+                        context: botResponse
+                    });
+                }
+            } else {
+                // 分析父母的沟通问题
+                if (userMessage.includes('不听话') || userMessage.includes('叛逆') || 
+                    userMessage.includes('担心') || userMessage.includes('焦虑')) {
+                    conversationSummary.communicationIssues.parent.push({
+                        content: userMessage,
+                        context: botResponse,
+                        type: 'behavioral'
+                    });
+                }
+                // 分析父母的情感需求
+                if (userMessage.includes('希望') || userMessage.includes('期待') || 
+                    userMessage.includes('要求') || userMessage.includes('应该')) {
+                    conversationSummary.emotionalNeeds.parent.push({
+                        content: userMessage,
+                        context: botResponse
+                    });
+                }
+                // 分析父母的优势
+                if (userMessage.includes('经验') || userMessage.includes('能力') || 
+                    userMessage.includes('付出') || userMessage.includes('努力')) {
+                    conversationSummary.strengths.parent.push({
+                        content: userMessage,
+                        context: botResponse
+                    });
+                }
+                // 分析父母的期待
+                if (userMessage.includes('希望') || userMessage.includes('期待') || 
+                    userMessage.includes('要求') || userMessage.includes('应该')) {
+                    conversationSummary.expectations.parent.push({
+                        content: userMessage,
+                        context: botResponse
+                    });
+                }
+            }
+
+            // 分析AI回复中的建议
+            if (botResponse.includes('建议') || botResponse.includes('可以') || 
+                botResponse.includes('试试') || botResponse.includes('不妨')) {
+                // 区分短期和长期建议
+                if (botResponse.includes('现在') || botResponse.includes('立即') || 
+                    botResponse.includes('马上') || botResponse.includes('今天')) {
+                    conversationSummary.suggestedSolutions.immediate.push({
+                        content: botResponse,
+                        context: userMessage
+                    });
+                } else {
+                    conversationSummary.suggestedSolutions.longTerm.push({
+                        content: botResponse,
+                        context: userMessage
+                    });
+                }
+            }
+
+            // 分析关键洞察
+            if (botResponse.includes('理解') || botResponse.includes('原因') || 
+                botResponse.includes('因为') || botResponse.includes('所以')) {
+                if (botResponse.includes('孩子') || botResponse.includes('你')) {
+                    conversationSummary.keyInsights.child.push({
+                        content: botResponse,
+                        context: userMessage
+                    });
+                } else if (botResponse.includes('父母') || botResponse.includes('您')) {
+                    conversationSummary.keyInsights.parent.push({
+                        content: botResponse,
+                        context: userMessage
+                    });
+                } else if (botResponse.includes('关系') || botResponse.includes('沟通') || 
+                         botResponse.includes('互动') || botResponse.includes('相处')) {
+                    conversationSummary.keyInsights.relationship.push({
+                        content: botResponse,
+                        context: userMessage
+                    });
+                }
+            }
+
+            // 分析相互沟通问题
+            if (userMessage.includes('不理解') || userMessage.includes('沟通') || 
+                userMessage.includes('交流') || userMessage.includes('对话')) {
+                conversationSummary.communicationIssues.mutual.push({
+                    content: userMessage,
+                    context: botResponse,
+                    type: 'interaction'
+                });
+            }
+        }
+
+        // 生成总结报告
+        async function generateReport() {
+            try {
+                // 显示加载状态
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'message bot-message loading';
+                loadingDiv.textContent = '正在生成总结报告...';
+                document.getElementById('chatMessages').appendChild(loadingDiv);
+
+                // 准备系统提示词
+                const reportPrompt = `作为一位专业的家庭沟通调解专家，请根据以下对话内容生成一份详细的总结报告。报告需要包含以下部分：
+                1. 沟通问题分析（孩子、父母、双方互动）
+                2. 情感需求分析（孩子、父母）
+                3. 关键洞察（孩子、父母、亲子关系）
+                4. 建议方案（短期、长期）
+                5. 优势分析（孩子、父母）
+                6. 期望分析（孩子、父母）
+
+                请确保报告内容：
+                - 基于实际对话内容
+                - 提供具体的分析和建议
+                - 使用专业且易懂的语言
+                - 突出重要发现和建议
+
+                对话内容：${JSON.stringify(messages)}`;
+
+                // 调用API生成报告
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-r1-250120",
+                        messages: [
+                            { role: "system", content: reportPrompt },
+                            { role: "user", content: "请根据以上对话内容生成总结报告。" }
+                        ],
+                        timeout: 120
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('API请求失败');
+                }
+
+                const data = await response.json();
+                if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+                    throw new Error('API返回数据格式错误');
+                }
+
+                const reportContent = data.choices[0].message.content;
+
+                // 移除加载状态
+                loadingDiv.remove();
+
+                // 准备报告数据
+                const reportData = {
+                    timestamp: new Date().toLocaleString(),
+                    content: reportContent
+                };
+
+                // 将数据编码并跳转到报告页面
+                const encodedData = encodeURIComponent(JSON.stringify(reportData));
+                window.location.href = `report.html?data=${encodedData}`;
+
+            } catch (error) {
+                console.error('Error:', error);
+                loadingDiv.remove();
+                addMessage(`抱歉，生成报告时遇到了问题：${error.message}`, 'bot');
+            }
+        }
+
+        // 添加回车发送功能
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
