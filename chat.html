@@ -362,28 +362,30 @@
         // 生成总结报告
         async function generateReport() {
             try {
+                // 检查是否有对话内容
+                if (messages.length <= 1) {
+                    alert('请先进行一些对话，然后再生成报告。');
+                    return;
+                }
+
                 // 显示加载状态
                 const loadingDiv = document.createElement('div');
                 loadingDiv.className = 'message bot-message loading';
                 loadingDiv.textContent = '正在生成总结报告...';
                 document.getElementById('chatMessages').appendChild(loadingDiv);
 
-                // 准备系统提示词
-                const reportPrompt = `作为一位专业的家庭沟通调解专家，请根据以下对话内容生成一份详细的总结报告。报告需要包含以下部分：
-                1. 沟通问题分析（孩子、父母、双方互动）
-                2. 情感需求分析（孩子、父母）
-                3. 关键洞察（孩子、父母、亲子关系）
-                4. 建议方案（短期、长期）
-                5. 优势分析（孩子、父母）
-                6. 期望分析（孩子、父母）
+                // 准备提示词
+                const reportPrompt = `请根据以下对话内容，生成一份家庭沟通调解报告。
+角色：${role === 'child' ? '孩子' : '父母'}
 
-                请确保报告内容：
-                - 基于实际对话内容
-                - 提供具体的分析和建议
-                - 使用专业且易懂的语言
-                - 突出重要发现和建议
+请包含以下内容：
+1. 沟通问题分析
+2. 情感需求分析
+3. 建议方案
+4. 关键发现
 
-                对话内容：${JSON.stringify(messages)}`;
+对话记录：
+${JSON.stringify(messages.filter(msg => msg.role !== 'system'), null, 2)}`;
 
                 // 调用API生成报告
                 const response = await fetch(API_URL, {
@@ -395,41 +397,52 @@
                     body: JSON.stringify({
                         model: "deepseek-r1-250120",
                         messages: [
-                            { role: "system", content: reportPrompt },
-                            { role: "user", content: "请根据以上对话内容生成总结报告。" }
-                        ],
-                        timeout: 120
+                            {
+                                role: "system",
+                                content: "你是一位专业的家庭沟通调解专家。请用清晰的结构和专业的视角分析对话内容，生成一份详细的调解报告。"
+                            },
+                            {
+                                role: "user",
+                                content: reportPrompt
+                            }
+                        ]
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error('API请求失败');
-                }
-
                 const data = await response.json();
-                if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
-                    throw new Error('API返回数据格式错误');
+                
+                if (!response.ok || !data.choices || !data.choices[0] || !data.choices[0].message) {
+                    throw new Error('API响应异常');
                 }
 
+                // 获取报告内容
                 const reportContent = data.choices[0].message.content;
-
-                // 移除加载状态
-                loadingDiv.remove();
 
                 // 准备报告数据
                 const reportData = {
                     timestamp: new Date().toLocaleString(),
+                    role: role || 'unknown',
                     content: reportContent
                 };
 
-                // 将数据编码并跳转到报告页面
-                const encodedData = encodeURIComponent(JSON.stringify(reportData));
-                window.location.href = `report.html?data=${encodedData}`;
+                // 移除加载状态
+                loadingDiv.remove();
+
+                // 使用 localStorage 存储报告数据
+                localStorage.setItem('reportData', JSON.stringify(reportData));
+                
+                // 直接跳转到报告页面
+                window.location.href = 'report.html';
 
             } catch (error) {
-                console.error('Error:', error);
-                loadingDiv.remove();
-                addMessage(`抱歉，生成报告时遇到了问题：${error.message}`, 'bot');
+                console.error('生成报告时发生错误:', error);
+                // 在界面上显示错误信息
+                addMessage(`生成报告失败：${error.message}`, 'bot');
+                // 移除加载状态
+                const loadingDiv = document.querySelector('.loading');
+                if (loadingDiv) {
+                    loadingDiv.remove();
+                }
             }
         }
 
