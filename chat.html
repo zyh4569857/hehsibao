@@ -515,28 +515,22 @@
             if (selectedVersion === 'detailed') {
                 // 处理支付逻辑
                 const confirmed = await handlePayment();
-                if (!confirmed) return;
+                if (!confirmed) {
+                    // 如果用户取消支付，重新启用生成报告按钮
+                    const reportButton = document.querySelector('.generate-report-button');
+                    reportButton.disabled = false;
+                    reportButton.style.opacity = '1';
+                    reportButton.style.cursor = 'pointer';
+                    return;
+                }
             }
 
             // 隐藏弹窗
             if (modal) {
                 modal.style.display = 'none';
+                modal.remove();
             }
             
-            // 生成报告
-            generateReport(selectedVersion);
-            
-            // 移除弹窗
-            modal.remove();
-        }
-
-        // 处理支付
-        async function handlePayment() {
-            return confirm('确认支付 ¥29.9 购买详细版报告？');
-        }
-
-        // 修改生成报告函数
-        async function generateReport(version) {
             try {
                 // 显示加载状态
                 const loadingDiv = document.createElement('div');
@@ -546,7 +540,7 @@
 
                 // 准备提示词
                 let prompt;
-                if (version === 'brief') {
+                if (selectedVersion === 'brief') {
                     prompt = `请根据以下对话内容，生成一份简略的家庭沟通调解报告。
 角色：${role === 'child' ? '孩子' : '父母'}
 
@@ -611,7 +605,7 @@ ${JSON.stringify(messages.filter(msg => msg.role !== 'system'), null, 2)}`;
                     content: reportContent,
                     timestamp: new Date().toLocaleString(),
                     role: role || 'unknown',
-                    version: version
+                    version: selectedVersion
                 };
 
                 // 移除加载状态
@@ -620,16 +614,8 @@ ${JSON.stringify(messages.filter(msg => msg.role !== 'system'), null, 2)}`;
                 // 存储报告数据
                 localStorage.setItem('reportData', JSON.stringify(reportData));
 
-                // 显示成功消息并跳转
-                const successDiv = document.createElement('div');
-                successDiv.className = 'message bot-message';
-                successDiv.textContent = '报告生成成功！即将跳转到报告页面...';
-                document.getElementById('chatMessages').appendChild(successDiv);
-
-                // 延迟跳转
-                setTimeout(() => {
-                    window.location.href = 'report.html';
-                }, 1500);
+                // 直接跳转到报告页面
+                window.location.href = 'report.html';
 
             } catch (error) {
                 console.error('生成报告错误:', error);
@@ -638,7 +624,18 @@ ${JSON.stringify(messages.filter(msg => msg.role !== 'system'), null, 2)}`;
                     loadingDiv.remove();
                 }
                 addMessage(`生成报告失败：${error.message}`, 'bot');
+                
+                // 如果生成失败，重新启用生成报告按钮
+                const reportButton = document.querySelector('.generate-report-button');
+                reportButton.disabled = false;
+                reportButton.style.opacity = '1';
+                reportButton.style.cursor = 'pointer';
             }
+        }
+
+        // 处理支付
+        async function handlePayment() {
+            return confirm('确认支付 ¥29.9 购买详细版报告？');
         }
 
         // 添加回车发送功能
