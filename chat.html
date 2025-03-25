@@ -29,98 +29,26 @@
         </div>
     </div>
 
-    <!-- 添加版本选择弹窗 -->
-    <div class="modal-overlay" id="versionModal" style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(5px);
-        -webkit-backdrop-filter: blur(5px);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;">
-        <div class="modal-container" style="
-            background: white;
-            padding: 2rem;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
-            <div class="modal-header" style="text-align: center; margin-bottom: 2rem;">
-                <h2 style="font-family: SimSun, '宋体', serif; font-size: 18pt; color: #1d1d1f; margin-bottom: 1rem;">选择报告版本</h2>
+    <!-- 修改版本选择弹窗的HTML结构 -->
+    <div class="modal-overlay" id="versionModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>选择报告版本</h2>
             </div>
-            <div class="modal-options" style="
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 1.5rem;
-                margin-bottom: 2rem;">
-                <div class="option-card" onclick="selectVersion('brief')" style="
-                    background: #f5f5f7;
-                    padding: 1.5rem;
-                    border-radius: 15px;
-                    text-align: center;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    border: 2px solid transparent;">
-                    <div class="option-title" style="
-                        font-family: SimSun, '宋体', serif;
-                        font-size: 14pt;
-                        font-weight: bold;
-                        margin-bottom: 1rem;
-                        color: #1d1d1f;">简略版</div>
-                    <div class="option-price" style="
-                        font-family: SimSun, '宋体', serif;
-                        font-size: 12pt;
-                        color: #86868b;
-                        margin-bottom: 0.5rem;">免费</div>
-                    <div class="option-description" style="
-                        font-family: SimSun, '宋体', serif;
-                        font-size: 11pt;
-                        color: #86868b;
-                        line-height: 1.4;">包含基本的沟通分析和建议</div>
+            <div class="modal-options">
+                <div class="option-card" onclick="selectVersion('brief')">
+                    <div class="option-title">简略版</div>
+                    <div class="option-price">免费</div>
+                    <div class="option-description">包含基本的沟通分析和建议</div>
                 </div>
-                <div class="option-card" onclick="selectVersion('detailed')" style="
-                    background: #f5f5f7;
-                    padding: 1.5rem;
-                    border-radius: 15px;
-                    text-align: center;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    border: 2px solid transparent;">
-                    <div class="option-title" style="
-                        font-family: SimSun, '宋体', serif;
-                        font-size: 14pt;
-                        font-weight: bold;
-                        margin-bottom: 1rem;
-                        color: #1d1d1f;">详细版</div>
-                    <div class="option-price" style="
-                        font-family: SimSun, '宋体', serif;
-                        font-size: 12pt;
-                        color: #86868b;
-                        margin-bottom: 0.5rem;">￥29.9</div>
-                    <div class="option-description" style="
-                        font-family: SimSun, '宋体', serif;
-                        font-size: 11pt;
-                        color: #86868b;
-                        line-height: 1.4;">包含深度分析和专业建议</div>
+                <div class="option-card" onclick="selectVersion('detailed')">
+                    <div class="option-title">详细版</div>
+                    <div class="option-price">¥19.90</div>
+                    <div class="option-description">包含深度分析和专业建议</div>
                 </div>
             </div>
-            <div class="modal-footer" style="text-align: center;">
-                <button class="modal-btn" id="confirmBtn" disabled onclick="confirmVersion()" style="
-                    padding: 0.8rem 2.5rem;
-                    border-radius: 25px;
-                    font-size: 1rem;
-                    font-weight: 500;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    border: none;
-                    outline: none;
-                    background: #0066cc;
-                    color: white;">确认选择</button>
+            <div class="modal-footer">
+                <button class="modal-btn" id="confirmBtn" disabled onclick="confirmVersion()">确认选择</button>
             </div>
         </div>
     </div>
@@ -198,6 +126,120 @@
         .generate-report-button:hover {
             transform: translateY(-2px) scale(1.05);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 修改版本选择弹窗的样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-header h2 {
+            font-family: SimSun, '宋体', serif;
+            font-size: 18pt;
+            color: #1d1d1f;
+            margin-bottom: 1rem;
+        }
+
+        .modal-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .option-card {
+            background: #f5f5f7;
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .option-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .option-card.selected {
+            border-color: #0066cc;
+            background: rgba(0, 102, 204, 0.05);
+        }
+
+        .option-title {
+            font-family: SimSun, '宋体', serif;
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #1d1d1f;
+        }
+
+        .option-price {
+            font-family: SimSun, '宋体', serif;
+            font-size: 12pt;
+            color: #86868b;
+            margin-bottom: 0.5rem;
+        }
+
+        .option-description {
+            font-family: SimSun, '宋体', serif;
+            font-size: 11pt;
+            color: #86868b;
+            line-height: 1.4;
+        }
+
+        .modal-footer {
+            text-align: center;
+        }
+
+        .modal-btn {
+            padding: 0.8rem 2.5rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            outline: none;
+            background: #0066cc;
+            color: white;
+            opacity: 0.5;
+        }
+
+        .modal-btn:not([disabled]) {
+            opacity: 1;
+            cursor: pointer;
+        }
+
+        .modal-btn:not([disabled]):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
     </style>
 
@@ -474,29 +516,38 @@
             this.style.cursor = 'not-allowed';
         };
 
-        // 显示版本选择弹窗
+        // 修改显示版本选择弹窗的函数
         function showVersionModal() {
             const modal = document.getElementById('versionModal');
             if (modal) {
                 modal.style.display = 'flex';
-            } else {
-                console.error('找不到版本选择弹窗元素');
+                
+                // 重置选择状态
+                selectedVersion = null;
+                document.querySelectorAll('.option-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                
+                // 禁用确认按钮
+                const confirmBtn = document.getElementById('confirmBtn');
+                if (confirmBtn) {
+                    confirmBtn.disabled = true;
+                    confirmBtn.style.opacity = '0.5';
+                }
             }
         }
 
-        // 选择版本
+        // 修改选择版本的函数
         function selectVersion(version) {
             selectedVersion = version;
             
             // 更新选中状态
             document.querySelectorAll('.option-card').forEach(card => {
-                card.style.borderColor = 'transparent';
-                card.style.background = '#f5f5f7';
+                card.classList.remove('selected');
             });
             
             const selectedCard = event.currentTarget;
-            selectedCard.style.borderColor = '#0066cc';
-            selectedCard.style.background = 'rgba(0, 102, 204, 0.05)';
+            selectedCard.classList.add('selected');
             
             // 启用确认按钮
             const confirmBtn = document.getElementById('confirmBtn');
@@ -512,25 +563,94 @@
 
             const modal = document.getElementById('versionModal');
             
+            // 隐藏版本选择弹窗
+            if (modal) {
+                modal.style.display = 'none';
+            }
+
             if (selectedVersion === 'detailed') {
-                // 处理支付逻辑
-                const confirmed = await handlePayment();
-                if (!confirmed) {
-                    // 如果用户取消支付，重新启用生成报告按钮
+                // 显示支付二维码
+                const paymentModal = document.createElement('div');
+                paymentModal.className = 'payment-modal';
+                paymentModal.innerHTML = `
+                    <div class="payment-container">
+                        <h2>微信支付</h2>
+                        <p class="price">¥19.90</p>
+                        <div class="qr-code">
+                            <img src="a337dbb6918678e507adc5e33a5d623.jpg" alt="微信支付二维码">
+                        </div>
+                        <p class="payment-tip">请使用微信扫码支付</p>
+                        <div class="payment-buttons">
+                            <button onclick="checkPayment()" class="payment-btn confirm-btn">已完成支付</button>
+                            <button onclick="cancelPayment()" class="payment-btn cancel-btn">取消支付</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(paymentModal);
+            } else {
+                // 如果是免费版，直接生成报告
+                try {
+                    await generateReport('brief');
+                } catch (error) {
+                    console.error('生成报告错误:', error);
+                    alert('生成报告失败，请稍后重试。');
+                    
+                    // 重新启用生成报告按钮
                     const reportButton = document.querySelector('.generate-report-button');
+                    if (reportButton) {
+                        reportButton.disabled = false;
+                        reportButton.style.opacity = '1';
+                        reportButton.style.cursor = 'pointer';
+                    }
+                }
+            }
+        }
+
+        // 添加取消支付函数
+        function cancelPayment() {
+            // 移除支付弹窗
+            const paymentModal = document.querySelector('.payment-modal');
+            if (paymentModal) {
+                paymentModal.remove();
+            }
+            
+            // 重新启用生成报告按钮
+            const reportButton = document.querySelector('.generate-report-button');
+            if (reportButton) {
+                reportButton.disabled = false;
+                reportButton.style.opacity = '1';
+                reportButton.style.cursor = 'pointer';
+            }
+        }
+
+        // 修改支付检测函数
+        async function checkPayment() {
+            try {
+                // 移除支付弹窗
+                const paymentModal = document.querySelector('.payment-modal');
+                if (paymentModal) {
+                    paymentModal.remove();
+                }
+                
+                // 生成详细报告
+                await generateReport('detailed');
+                
+            } catch (error) {
+                console.error('生成报告错误:', error);
+                alert('生成报告失败，请稍后重试。');
+                
+                // 重新启用生成报告按钮
+                const reportButton = document.querySelector('.generate-report-button');
+                if (reportButton) {
                     reportButton.disabled = false;
                     reportButton.style.opacity = '1';
                     reportButton.style.cursor = 'pointer';
-                    return;
                 }
             }
+        }
 
-            // 隐藏弹窗
-            if (modal) {
-                modal.style.display = 'none';
-                modal.remove();
-            }
-            
+        // 修改生成报告函数
+        async function generateReport(version) {
             try {
                 // 显示加载状态
                 const loadingDiv = document.createElement('div');
@@ -540,13 +660,19 @@
 
                 // 准备提示词
                 let prompt;
-                if (selectedVersion === 'brief') {
+                if (version === 'brief') {
                     prompt = `请根据以下对话内容，生成一份简略的家庭沟通调解报告。
 角色：${role === 'child' ? '孩子' : '父母'}
 
 请包含以下内容：
-1. 核心问题概述
-2. 基本建议
+1. 核心问题概述（100字以内）
+2. 关键发现（2-3点）
+3. 基本建议（2-3条）
+
+要求：
+- 内容简洁明了，总字数控制在500字以内
+- 使用要点式列举，便于快速阅读
+- 重点突出最关键的问题和建议
 
 对话记录：
 ${JSON.stringify(messages.filter(msg => msg.role !== 'system'), null, 2)}`;
@@ -556,10 +682,32 @@ ${JSON.stringify(messages.filter(msg => msg.role !== 'system'), null, 2)}`;
 
 请包含以下内容：
 1. 沟通问题深度分析
-2. 情感需求分析
-3. 具体建议方案
-4. 执行计划
-5. 关键发现
+   - 当前沟通模式分析
+   - 沟通障碍识别
+   - 情感需求分析
+2. 家庭关系评估
+   - 互动模式分析
+   - 角色定位评估
+   - 期望差异分析
+3. 具体改善建议
+   - 短期改善目标
+   - 中长期发展建议
+   - 具体执行步骤
+4. 沟通技巧指导
+   - 情绪管理方法
+   - 有效表达技巧
+   - 倾听与回应策略
+5. 发展规划
+   - 阶段性目标设定
+   - 进展评估标准
+   - 调整与反馈机制
+
+要求：
+- 内容全面深入，总字数不少于1500字
+- 结构清晰，层次分明
+- 提供具体可执行的建议
+- 注重长期发展规划
+- 可以使用图表辅助说明
 
 对话记录：
 ${JSON.stringify(messages.filter(msg => msg.role !== 'system'), null, 2)}`;
@@ -605,7 +753,7 @@ ${JSON.stringify(messages.filter(msg => msg.role !== 'system'), null, 2)}`;
                     content: reportContent,
                     timestamp: new Date().toLocaleString(),
                     role: role || 'unknown',
-                    version: selectedVersion
+                    version: version
                 };
 
                 // 移除加载状态
@@ -614,8 +762,16 @@ ${JSON.stringify(messages.filter(msg => msg.role !== 'system'), null, 2)}`;
                 // 存储报告数据
                 localStorage.setItem('reportData', JSON.stringify(reportData));
 
-                // 直接跳转到报告页面
-                window.location.href = 'report.html';
+                // 显示成功消息
+                const successDiv = document.createElement('div');
+                successDiv.className = 'message bot-message';
+                successDiv.textContent = '报告生成成功！即将跳转到报告页面...';
+                document.getElementById('chatMessages').appendChild(successDiv);
+
+                // 延迟跳转
+                setTimeout(() => {
+                    window.location.href = 'report.html';
+                }, 1500);
 
             } catch (error) {
                 console.error('生成报告错误:', error);
@@ -623,20 +779,97 @@ ${JSON.stringify(messages.filter(msg => msg.role !== 'system'), null, 2)}`;
                 if (loadingDiv) {
                     loadingDiv.remove();
                 }
-                addMessage(`生成报告失败：${error.message}`, 'bot');
-                
-                // 如果生成失败，重新启用生成报告按钮
-                const reportButton = document.querySelector('.generate-report-button');
-                reportButton.disabled = false;
-                reportButton.style.opacity = '1';
-                reportButton.style.cursor = 'pointer';
+                throw error;
             }
         }
 
-        // 处理支付
-        async function handlePayment() {
-            return confirm('确认支付 ¥29.9 购买详细版报告？');
-        }
+        // 添加支付相关样式
+        const style = document.createElement('style');
+        style.textContent = `
+            .payment-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
+
+            .payment-container {
+                background: white;
+                padding: 2rem;
+                border-radius: 20px;
+                text-align: center;
+                max-width: 400px;
+                width: 90%;
+            }
+
+            .payment-container h2 {
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
+                color: #333;
+            }
+
+            .price {
+                font-size: 2rem;
+                font-weight: bold;
+                color: #333;
+                margin-bottom: 1.5rem;
+            }
+
+            .qr-code {
+                margin: 1.5rem auto;
+                width: 200px;
+                height: 200px;
+            }
+
+            .qr-code img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+
+            .payment-tip {
+                color: #666;
+                margin-bottom: 1.5rem;
+            }
+
+            .payment-buttons {
+                display: flex;
+                gap: 1rem;
+                justify-content: center;
+            }
+
+            .payment-btn {
+                padding: 0.8rem 1.5rem;
+                border-radius: 25px;
+                font-size: 1rem;
+                cursor: pointer;
+                border: none;
+                outline: none;
+                transition: all 0.3s ease;
+            }
+
+            .confirm-btn {
+                background: #07C160;
+                color: white;
+            }
+
+            .cancel-btn {
+                background: #f5f5f5;
+                color: #333;
+            }
+
+            .payment-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            }
+        `;
+        document.head.appendChild(style);
 
         // 添加回车发送功能
         document.getElementById('messageInput').addEventListener('keypress', function(e) {
