@@ -563,80 +563,6 @@
             }
         }
 
-        // 修改支付检测函数
-        async function checkPayment() {
-            try {
-                // 显示验证中的提示
-                const paymentTip = document.querySelector('.payment-tip');
-                if (paymentTip) {
-                    paymentTip.textContent = '正在验证支付状态...';
-                }
-
-                // 从URL中获取支付二维码的订单号（假设存储在img标签的data-order-id属性中）
-                const qrCodeImg = document.querySelector('.qr-code img');
-                const orderId = qrCodeImg.getAttribute('data-order-id');
-                
-                if (!orderId) {
-                    throw new Error('订单号不存在');
-                }
-
-                // 调用微信支付查询接口
-                const response = await fetch('https://api.example.com/check-payment', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        orderId: orderId,
-                        amount: 19.90,
-                        type: 'wechat'
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('支付状态查询失败');
-                }
-
-                const result = await response.json();
-
-                if (result.status === 'SUCCESS') {
-                    // 支付成功
-                    paymentStatus.isPaid = true;
-                    paymentStatus.orderId = orderId;
-
-                    // 移除支付弹窗
-                    const paymentModal = document.querySelector('.payment-modal');
-                    if (paymentModal) {
-                        paymentModal.remove();
-                    }
-
-                    // 生成详细报告
-                    await generateReport('detailed');
-                } else {
-                    throw new Error('支付未完成');
-                }
-
-            } catch (error) {
-                console.error('支付验证错误:', error);
-                
-                // 根据错误类型显示不同的提示信息
-                let errorMessage = '支付验证失败，请稍后重试';
-                if (error.message === '支付未完成') {
-                    errorMessage = '未检测到支付完成，请确认支付后再试';
-                } else if (error.message === '订单号不存在') {
-                    errorMessage = '订单信息有误，请刷新页面重试';
-                }
-                
-                alert(errorMessage);
-
-                // 更新支付提示文本
-                const paymentTip = document.querySelector('.payment-tip');
-                if (paymentTip) {
-                    paymentTip.textContent = '请使用微信扫码支付';
-                }
-            }
-        }
-
         // 修改支付二维码显示部分
         function showPaymentQRCode() {
             // 生成订单号
@@ -649,7 +575,7 @@
                     <h2>微信支付</h2>
                     <p class="price">¥19.90</p>
                     <div class="qr-code">
-                        <img src="aeef947e33a407be2ebe7a062022383.jpg" alt="微信支付二维码" data-order-id="${orderId}">
+                        <img src="a337dbb6918678e507adc5e33a5d623.jpg" alt="微信支付二维码" data-order-id="${orderId}">
                     </div>
                     <p class="payment-tip">请使用微信扫码支付</p>
                     <div class="payment-buttons">
@@ -659,6 +585,48 @@
                 </div>
             `;
             document.body.appendChild(paymentModal);
+        }
+
+        // 修改支付检测函数
+        async function checkPayment() {
+            try {
+                // 显示验证中的提示
+                const paymentTip = document.querySelector('.payment-tip');
+                if (paymentTip) {
+                    paymentTip.textContent = '正在验证支付状态...';
+                }
+
+                // 从URL中获取支付二维码的订单号
+                const qrCodeImg = document.querySelector('.qr-code img');
+                const orderId = qrCodeImg.getAttribute('data-order-id');
+                
+                if (!orderId) {
+                    throw new Error('订单号不存在');
+                }
+
+                // 模拟支付成功
+                paymentStatus.isPaid = true;
+                paymentStatus.orderId = orderId;
+
+                // 移除支付弹窗
+                const paymentModal = document.querySelector('.payment-modal');
+                if (paymentModal) {
+                    paymentModal.remove();
+                }
+
+                // 生成详细报告
+                await generateReport('detailed');
+
+            } catch (error) {
+                console.error('支付验证错误:', error);
+                alert('支付验证失败，请稍后重试');
+
+                // 更新支付提示文本
+                const paymentTip = document.querySelector('.payment-tip');
+                if (paymentTip) {
+                    paymentTip.textContent = '请使用微信扫码支付';
+                }
+            }
         }
 
         // 修改确认版本选择函数中的支付部分
